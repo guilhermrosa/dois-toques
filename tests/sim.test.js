@@ -90,3 +90,22 @@ test('the crumbling front never lags more than maxGap rows', () => {
     assert.ok(s.crumble >= s.hero.r - CFG.maxGap - 1e-9);
   }
 });
+
+test('a side hop stays on the row and scores nothing', () => {
+  const s = createSim({ seed: 3 });
+  s.move(1, true);
+  assert.deepEqual(s.hero, { r: 0, x: 2 });
+  assert.equal(s.score, 0);
+  s.move(-1, true);
+  assert.deepEqual(s.hero, { r: 0, x: 0 });
+  assert.ok(s.alive);
+});
+
+test('a side hop off the edge is a fall', () => {
+  const s = createSim({ seed: 3 });
+  s.move(1, true); s.move(1, true);
+  assert.deepEqual(s.hero, { r: 0, x: 4 });
+  assert.ok(s.alive);
+  s.move(1, true);
+  assert.equal(s.cause, 'fall');
+});

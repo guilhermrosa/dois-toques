@@ -21,7 +21,7 @@ export function rowXs(r, xMax = CFG.xMax) {
 
 export function createSim({ seed = Date.now(), emit = () => {}, cfg = CFG } = {}) {
   const rand = rng(seed);
-  const rows = new Map(); // r -> { [x]: 'floor' | 'hole' | 'gem' }
+  const rows = new Map(); // r -> { [x]: 'floor' | 'hole' | 'gem' } (gem: a fly to eat)
   let pathX = 0;          // a guaranteed way forward: one floor cell per row, a random zigzag
   let genTo = -1;
 
@@ -52,11 +52,12 @@ export function createSim({ seed = Date.now(), emit = () => {}, cfg = CFG } = {}
     hero: { r: 0, x: 0 },
     from: { r: 0, x: 0 }, // where the last hop started, for the animation
     hopAt: -1,            // time of the last hop
+    lastSide: false,      // whether the last hop was a side hop
     time: 0,
     started: false,       // the crumbling starts on the first move
     crumble: cfg.crumbleStart,
     alive: true,
-    cause: null,          // 'fall' | 'crumble'
+    cause: null,          // 'fall' (into the water) | 'crumble' (the pad sank)
     diedAt: 0,
     gems: 0,
     get score() { return s.hero.r; },
@@ -66,22 +67,25 @@ export function createSim({ seed = Date.now(), emit = () => {}, cfg = CFG } = {}
       const row = rows.get(r);
       return row ? row[x] : undefined;
     },
-    move(dir) { // -1 left, +1 right
+    // dir: -1 left, +1 right. A normal hop goes forward-left or forward-right, to (r + 1, x ± 1);
+    // a side hop (an option, v0.2) stays on the row, to (r, x ± 2), and scores nothing.
+    move(dir, side = false) {
       if (!s.alive) return false;
       if (!s.started) { s.started = true; emit('start'); }
       s.from = { ...s.hero };
-      s.hero = { r: s.hero.r + 1, x: s.hero.x + dir };
+      s.hero = side ? { r: s.hero.r, x: s.hero.x + 2 * dir } : { r: s.hero.r + 1, x: s.hero.x + dir };
       s.hopAt = s.time;
+      s.lastSide = side;
       ensure(s.hero.r + cfg.lookahead);
       const kind = s.cell(s.hero.r, s.hero.x);
-      emit('step', { dir, r: s.hero.r });
+      emit('step', { dir, side, r: s.hero.r });
       if (kind === undefined || kind === 'hole') { die('fall'); return true; }
       if (kind === 'gem') {
         rows.get(s.hero.r)[s.hero.x] = 'floor';
         s.gems++;
         emit('gem', { gems: s.gems });
       }
-      if (s.hero.r % 25 === 0) emit('milestone', { r: s.hero.r });
+      if (!side && s.hero.r % 25 === 0) emit('milestone', { r: s.hero.r });
       return true;
     },
     update(dt) {

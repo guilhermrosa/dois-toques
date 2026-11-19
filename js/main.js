@@ -4,7 +4,7 @@ import { createRenderer } from './render.js';
 import { bindInput } from './input.js';
 import { play, unlock, setSound } from './audio.js';
 import { store } from './store.js';
-import { SHAPES } from './config.js';
+import { SHAPES, SIDE_MODES } from './config.js';
 
 const $ = id => document.getElementById(id);
 const cvs = $('game');
@@ -14,9 +14,12 @@ let state = 'menu'; // 'menu' | 'play' | 'pause' | 'over'
 let sim = null;
 let shape = store.get('shape', 'losango');
 if (!(shape in SHAPES)) shape = 'losango';
+let sideMode = store.get('side', 'off');
+if (!(sideMode in SIDE_MODES)) sideMode = 'off';
 let sound = store.get('sound', true);
 let best = store.get('best', 0);
 let runs = store.get('runs', 0);
+let hintedSide = 'off'; // the side-hop mode the last hints showed
 let hints = 0; // seconds left of the left/right hints (first runs only)
 setSound(sound);
 
@@ -29,7 +32,7 @@ sim = newSim(); // a board behind the menu
 
 function onEvent(type, data) {
   play(type, data);
-  if (type === 'gem') $('gems').textContent = '◆ ' + data.gems;
+  if (type === 'gem') $('gems').textContent = 'moscas ' + data.gems;
   if (type === 'step' && hints > 0 && sim.score >= 6) hints = Math.min(hints, 0.6);
   if (type === 'die') {
     if (navigator.vibrate) try { navigator.vibrate(60); } catch (e) { /* ignore */ }
@@ -42,9 +45,10 @@ function start() {
   sim = newSim();
   state = 'play';
   runs++; store.set('runs', runs);
-  hints = runs <= 3 ? 4 : 0;
+  hints = runs <= 3 || sideMode !== hintedSide ? 4 : 0;
+  hintedSide = sideMode;
   $('score').textContent = '0';
-  $('gems').textContent = '◆ 0';
+  $('gems').textContent = 'moscas 0';
   $('bestHud').textContent = 'recorde ' + best;
   show('menu', false); show('over', false); show('paused', false); show('hud', true);
   cvs.focus();
@@ -56,9 +60,9 @@ function gameOver() {
   const isBest = score > best;
   if (isBest) { best = score; store.set('best', best); }
   $('overScore').textContent = score;
-  $('overCause').textContent = sim.cause === 'fall' ? 'Caiu no vazio.' : 'O chão desabou sob você.';
+  $('overCause').textContent = sim.cause === 'fall' ? 'Caiu na água.' : (shape === 'hexagono' ? 'A folha afundou.' : 'A pedra afundou.');
   $('overBest').textContent = isBest ? 'Novo recorde!' : 'Recorde: ' + best;
-  $('overGems').textContent = sim.gems ? `${sim.gems} cristal${sim.gems > 1 ? 'is' : ''}` : '';
+  $('overGems').textContent = sim.gems ? `· ${sim.gems} mosca${sim.gems > 1 ? 's' : ''}` : '';
   show('hud', false); show('over', true);
 }
 
@@ -80,13 +84,17 @@ function resume() {
 }
 
 function updateMenu() {
-  $('menuBest').textContent = best ? 'Recorde: ' + best : 'Toque à esquerda ou à direita para avançar.';
+  $('menuBest').textContent = best ? 'Recorde: ' + best : 'Toque à esquerda ou à direita para o sapo pular.';
   for (const b of document.querySelectorAll('[data-shape]')) b.setAttribute('aria-pressed', String(b.dataset.shape === shape));
+  for (const b of document.querySelectorAll('[data-side]')) b.setAttribute('aria-pressed', String(b.dataset.side === sideMode));
   $('btnSound').textContent = 'Som: ' + (sound ? 'ligado' : 'desligado');
 }
 
 for (const b of document.querySelectorAll('[data-shape]')) {
   b.addEventListener('click', () => { shape = b.dataset.shape; store.set('shape', shape); updateMenu(); });
+}
+for (const b of document.querySelectorAll('[data-side]')) {
+  b.addEventListener('click', () => { sideMode = b.dataset.side; store.set('side', sideMode); updateMenu(); });
 }
 $('btnPlay').addEventListener('click', () => { unlock(); start(); });
 $('btnAgain').addEventListener('click', () => { unlock(); start(); });
@@ -99,9 +107,10 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) pause
 
 bindInput(cvs, {
   onTouch: unlock,
-  step(dir) {
+  sideMode: () => sideMode,
+  step(dir, side) {
     if (state !== 'play') return;
-    if (sim.move(dir)) $('score').textContent = sim.score;
+    if (sim.move(dir, side)) $('score').textContent = sim.score;
   },
 });
 
@@ -122,7 +131,11 @@ function frame(now) {
   } else if (state === 'over' || state === 'menu') {
     sim.time += dt; // keeps the death animation and the crumble shake moving
   }
-  renderer.draw(sim, { shape, dt, hints: state === 'play' ? hints : 0 });
+  renderer.draw(sim, {
+    shape, dt, side: sideMode !== 'off',
+    hints: state === 'play' ? hints : 0,
+    sideHint: { off: '', double: 'toque duplo', hold: 'segurar' }[sideMode],
+  });
   requestAnimationFrame(frame);
 }
 updateMenu();

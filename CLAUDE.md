@@ -6,7 +6,11 @@ Mobile top-down game (working title), shipped as a PWA on GitHub Pages from `mai
 
 Two controls only: a touch on the left half of the screen steps forward-left, on the right half forward-right (keyboard: ←/A, →/D). The board is a lattice of cells (r, x) with x + r even; a step goes to (r + 1, x ± 1). Holes and the board's edge are falls; the floor crumbles from behind (starting on the first move, faster as you go, never more than `maxGap` rows behind), so standing still loses. Score = rows climbed; gems are counted apart. The generator keeps one guaranteed zigzag path, so a way forward always exists (tests check 600 rows).
 
-The cell shape is open (v0.1 prototype): diamond (losango), pointy-top hexagon and offset brick draw the same lattice, chosen in the menu, to be tried on a phone.
+Theme (v0.2, user's idea): a frog hopping over a lake. Flies are the "gems"; the crumbling floor is stones / lily pads sinking.
+
+Still being tried on a phone, chosen in the menu (the user's goals and challenges are still open):
+- Grid: diamond (`losango`, drawn as flat stones; the user's favourite in v0.1) or hex (`hexagono`, round lily pads, every neighbour at the same distance). Offset bricks were dropped in v0.2.
+- Side hop (user's idea, v0.2): a hop to (r, x ± 2), staying on the row and scoring nothing. Off by default; made by a double tap or by holding (`js/input.js`). Both cost latency on plain taps (double: waits `DOUBLE_MS`; hold: hops on release), which is why it is optional. Shift + arrow on a keyboard.
 
 ## Conventions
 

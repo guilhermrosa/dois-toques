@@ -19,18 +19,27 @@ export const CFG = {
   hopTime: 0.09,      // s, the hop animation (the move itself is instant)
 };
 
-// Row height / half-column width for each shape, so neighbours touch.
+// Side hops (optional, v0.2): which gesture makes one. A plain tap is instant only with 'off':
+// 'double' must wait DOUBLE_MS after each tap to know there is no second one, and 'hold' hops on
+// release (a hold of HOLD_MS is a side hop).
+export const SIDE_MODES = { off: 'Desligado', double: 'Toque duplo', hold: 'Segurar' };
+export const DOUBLE_MS = 220;
+export const HOLD_MS = 240;
+
+// Row height / half-column width for each grid, so neighbours sit evenly. v0.2 (lake theme):
+// 'losango' is the diamond grid drawn as flat stones, 'hexagono' the hex grid (every neighbour at the
+// same distance, the side hop included) drawn as round lily pads.
 export const SHAPES = {
   losango: { name: 'Losango', rowRatio: 0.82 },
   hexagono: { name: 'Hexágono', rowRatio: Math.sqrt(3) },
-  tijolo: { name: 'Tijolo', rowRatio: 0.9 },
 };
 
 export const COLORS = {
-  abyssTop: '#1b2240', abyssBottom: '#090c18',
-  tile: '#efe6d2', tileSide: '#a8957a', tileMark: '#e4d6b8',
-  hole: 'rgba(255,255,255,.07)',
-  target: 'rgba(255,255,255,.55)',
-  gem: '#55dcc9', gemDark: '#1f8f84',
-  hero: '#ff6b5a', heroDark: '#8a2a33', eye: '#1b1420',
+  waterTop: '#2d8a8f', waterBottom: '#16505e', glint: 'rgba(255,255,255,.10)',
+  ripple: 'rgba(230,255,250,.55)',
+  stone: '#d6d0bd', stoneSide: '#7f7a68', stoneMoss: '#9fb27a',
+  pad: '#3f9a52', padDark: '#2a6a3a', padVein: 'rgba(30,70,25,.35)', flower: '#f6c6d6',
+  target: 'rgba(255,255,255,.7)',
+  frog: '#c6e85a', frogDark: '#2c4a14', frogBelly: '#eef7b0', eyeWhite: '#f5f7e8', pupil: '#16200f',
+  fly: '#1d1d22', wing: 'rgba(225,240,255,.75)',
 };

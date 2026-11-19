@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>Dois Toques</title>
-  <meta name="description" content="Avance pela grade com só dois toques: esquerda e direita. Não caia e não fique para trás.">
-  <meta name="theme-color" content="#1b2240">
+  <meta name="description" content="Um sapo atravessando o lago com só dois toques: esquerda e direita. Não caia na água e não fique para trás.">
+  <meta name="theme-color" content="#16505e">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -18,26 +18,33 @@
 </head>
 <body>
   <div id="stage">
-    <canvas id="game" tabindex="0" aria-label="Área do jogo. Toque na metade esquerda para avançar à esquerda, na metade direita para avançar à direita."></canvas>
+    <canvas id="game" tabindex="0" aria-label="Área do jogo. Toque na metade esquerda para o sapo pular à frente e à esquerda, na metade direita para pular à frente e à direita."></canvas>
 
     <div class="hud" id="hud" hidden>
       <button class="chip-btn" id="btnPause" type="button" aria-label="Pausar">❚❚</button>
       <div class="score"><b id="score">0</b><small id="bestHud">recorde 0</small></div>
-      <span class="chip" id="gems">◆ 0</span>
+      <span class="chip" id="gems">moscas 0</span>
     </div>
 
     <div class="overlay" id="menu">
       <div class="card">
         <p class="eyebrow" id="verLabel">Protótipo</p>
         <h1>Dois Toques</h1>
-        <p class="lead" id="menuBest">Toque à esquerda ou à direita para avançar.</p>
+        <p class="lead" id="menuBest">Toque à esquerda ou à direita para o sapo pular.</p>
         <button class="btn primary" id="btnPlay" type="button">Jogar</button>
         <div class="group">
           <p class="hint">Forma da grade (teste):</p>
           <div class="seg">
-            <button class="seg-btn" type="button" data-shape="losango">Losango</button>
-            <button class="seg-btn" type="button" data-shape="hexagono">Hexágono</button>
-            <button class="seg-btn" type="button" data-shape="tijolo">Tijolo</button>
+            <button class="seg-btn" type="button" data-shape="losango">Losango · pedras</button>
+            <button class="seg-btn" type="button" data-shape="hexagono">Hexágono · folhas</button>
+          </div>
+        </div>
+        <div class="group">
+          <p class="hint">Pulo para o lado (teste):</p>
+          <div class="seg seg3">
+            <button class="seg-btn" type="button" data-side="off">Desligado</button>
+            <button class="seg-btn" type="button" data-side="double">Toque duplo</button>
+            <button class="seg-btn" type="button" data-side="hold">Segurar</button>
           </div>
         </div>
         <div class="row2">

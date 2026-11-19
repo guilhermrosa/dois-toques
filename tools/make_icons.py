@@ -1,12 +1,12 @@
-"""Generate the app icons: three stone diamonds of the board over the night-blue abyss, the coral
-hero on the front one. Run from the repository root:  python3 tools/make_icons.py  (needs Pillow).
+"""Generate the app icons: three stones of the board on the lake, the frog on the front one. Run from the repository root:  python3 tools/make_icons.py  (needs Pillow).
 Placeholder art, in the colours of js/config.js.
 """
 from PIL import Image, ImageDraw
 
-ABYSS_TOP, ABYSS_BOTTOM = (27, 34, 64), (9, 12, 24)
-TILE, SIDE = (239, 230, 210), (168, 149, 122)
-HERO, HERO_DARK, EYE = (255, 107, 90), (138, 42, 51), (27, 20, 32)
+ABYSS_TOP, ABYSS_BOTTOM = (45, 138, 143), (22, 80, 94)
+TILE, SIDE = (214, 208, 189), (127, 122, 104)
+HERO, HERO_DARK, EYE = (198, 232, 90), (44, 74, 20), (22, 32, 15)
+EYE_WHITE = (245, 247, 232)
 
 
 def mix(a, b, t):
@@ -34,12 +34,19 @@ def icon(size, inset):
         cx, cy = cx0 + x * dx, cy0 - r * dy
         diamond(cx, cy + thick, SIDE)
         diamond(cx, cy, TILE)
-    R = dx * 0.38
-    d.ellipse([cx0 - R, cy0 - R + R * 0.12, cx0 + R, cy0 + R + R * 0.12], fill=HERO_DARK)
-    d.ellipse([cx0 - R, cy0 - R, cx0 + R, cy0 + R], fill=HERO)
+    R = dx * 0.62  # the frog, from above: hind legs, body, bulging eyes
+    o = R * 0.09
     for side in (-1, 1):
-        ex, ey = cx0 + side * R * 0.36, cy0 - R * 0.42
-        d.ellipse([ex - R * 0.13, ey - R * 0.18, ex + R * 0.13, ey + R * 0.18], fill=EYE)
+        lx, ly = cx0 + side * R * 0.55, cy0 + R * 0.5
+        d.ellipse([lx - R * 0.2 - o, ly - R * 0.42 - o, lx + R * 0.2 + o, ly + R * 0.42 + o], fill=HERO_DARK)
+        d.ellipse([lx - R * 0.2, ly - R * 0.42, lx + R * 0.2, ly + R * 0.42], fill=HERO)
+    d.ellipse([cx0 - R * 0.58 - o, cy0 - R * 0.72 - o, cx0 + R * 0.58 + o, cy0 + R * 0.72 + o], fill=HERO_DARK)
+    d.ellipse([cx0 - R * 0.58, cy0 - R * 0.72, cx0 + R * 0.58, cy0 + R * 0.72], fill=HERO)
+    for side in (-1, 1):
+        ex, ey = cx0 + side * R * 0.3, cy0 - R * 0.52
+        d.ellipse([ex - R * 0.2 - o, ey - R * 0.2 - o, ex + R * 0.2 + o, ey + R * 0.2 + o], fill=HERO_DARK)
+        d.ellipse([ex - R * 0.2, ey - R * 0.2, ex + R * 0.2, ey + R * 0.2], fill=EYE_WHITE)
+        d.ellipse([ex - R * 0.1, ey - R * 0.15, ex + R * 0.1, ey + R * 0.05], fill=EYE)
     return img.resize((size, size), Image.LANCZOS)
 
 
