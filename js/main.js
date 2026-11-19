@@ -1,6 +1,7 @@
 // Wires the sim, renderer, input, audio and the menus together.
 import { createSim } from './sim.js';
 import { createRenderer } from './render.js';
+import { createRenderer3d } from './render3d.js';
 import { bindInput } from './input.js';
 import { play, unlock, setSound } from './audio.js';
 import { store } from './store.js';
@@ -8,12 +9,20 @@ import { SHAPES, SIDE_MODES } from './config.js';
 
 const $ = id => document.getElementById(id);
 const cvs = $('game');
-const renderer = createRenderer(cvs);
+// Two views of the same board (v0.3): 'golem', third person in the forest (the original vision),
+// and 'sapo', the top-down frog of v0.2, kept as an option.
+const VIEWS = { golem: createRenderer3d(cvs), sapo: createRenderer(cvs) };
+const NAMES = {
+  golem: { gem: ['vaga-lume', 'vaga-lumes'], fall: 'Caiu no lago.', sank: () => 'A pedra afundou.' },
+  sapo: { gem: ['mosca', 'moscas'], fall: 'Caiu na água.', sank: sh => sh === 'hexagono' ? 'A folha afundou.' : 'A pedra afundou.' },
+};
 
 let state = 'menu'; // 'menu' | 'play' | 'pause' | 'over'
 let sim = null;
 let shape = store.get('shape', 'losango');
 if (!(shape in SHAPES)) shape = 'losango';
+let view = store.get('view', 'golem');
+if (!(view in VIEWS)) view = 'golem';
 let sideMode = store.get('side', 'off');
 if (!(sideMode in SIDE_MODES)) sideMode = 'off';
 let sound = store.get('sound', true);
@@ -32,7 +41,7 @@ sim = newSim(); // a board behind the menu
 
 function onEvent(type, data) {
   play(type, data);
-  if (type === 'gem') $('gems').textContent = 'moscas ' + data.gems;
+  if (type === 'gem') $('gems').textContent = NAMES[view].gem[1] + ' ' + data.gems;
   if (type === 'step' && hints > 0 && sim.score >= 6) hints = Math.min(hints, 0.6);
   if (type === 'die') {
     if (navigator.vibrate) try { navigator.vibrate(60); } catch (e) { /* ignore */ }
@@ -48,7 +57,7 @@ function start() {
   hints = runs <= 3 || sideMode !== hintedSide ? 4 : 0;
   hintedSide = sideMode;
   $('score').textContent = '0';
-  $('gems').textContent = 'moscas 0';
+  $('gems').textContent = NAMES[view].gem[1] + ' 0';
   $('bestHud').textContent = 'recorde ' + best;
   show('menu', false); show('over', false); show('paused', false); show('hud', true);
   cvs.focus();
@@ -60,9 +69,9 @@ function gameOver() {
   const isBest = score > best;
   if (isBest) { best = score; store.set('best', best); }
   $('overScore').textContent = score;
-  $('overCause').textContent = sim.cause === 'fall' ? 'Caiu na água.' : (shape === 'hexagono' ? 'A folha afundou.' : 'A pedra afundou.');
+  $('overCause').textContent = sim.cause === 'fall' ? NAMES[view].fall : NAMES[view].sank(shape);
   $('overBest').textContent = isBest ? 'Novo recorde!' : 'Recorde: ' + best;
-  $('overGems').textContent = sim.gems ? `· ${sim.gems} mosca${sim.gems > 1 ? 's' : ''}` : '';
+  $('overGems').textContent = sim.gems ? `· ${sim.gems} ${NAMES[view].gem[sim.gems > 1 ? 1 : 0]}` : '';
   show('hud', false); show('over', true);
 }
 
@@ -84,14 +93,18 @@ function resume() {
 }
 
 function updateMenu() {
-  $('menuBest').textContent = best ? 'Recorde: ' + best : 'Toque à esquerda ou à direita para o sapo pular.';
+  $('menuBest').textContent = best ? 'Recorde: ' + best : 'Toque à esquerda ou à direita para pular.';
   for (const b of document.querySelectorAll('[data-shape]')) b.setAttribute('aria-pressed', String(b.dataset.shape === shape));
+  for (const b of document.querySelectorAll('[data-view]')) b.setAttribute('aria-pressed', String(b.dataset.view === view));
   for (const b of document.querySelectorAll('[data-side]')) b.setAttribute('aria-pressed', String(b.dataset.side === sideMode));
   $('btnSound').textContent = 'Som: ' + (sound ? 'ligado' : 'desligado');
 }
 
 for (const b of document.querySelectorAll('[data-shape]')) {
   b.addEventListener('click', () => { shape = b.dataset.shape; store.set('shape', shape); updateMenu(); });
+}
+for (const b of document.querySelectorAll('[data-view]')) {
+  b.addEventListener('click', () => { view = b.dataset.view; store.set('view', view); updateMenu(); });
 }
 for (const b of document.querySelectorAll('[data-side]')) {
   b.addEventListener('click', () => { sideMode = b.dataset.side; store.set('side', sideMode); updateMenu(); });
@@ -114,7 +127,7 @@ bindInput(cvs, {
   },
 });
 
-addEventListener('resize', () => renderer.resize());
+addEventListener('resize', () => { for (const r of Object.values(VIEWS)) r.resize(); });
 
 let last = performance.now();
 let overTimer = 0;
@@ -131,7 +144,7 @@ function frame(now) {
   } else if (state === 'over' || state === 'menu') {
     sim.time += dt; // keeps the death animation and the crumble shake moving
   }
-  renderer.draw(sim, {
+  VIEWS[view].draw(sim, {
     shape, dt, side: sideMode !== 'off',
     hints: state === 'play' ? hints : 0,
     sideHint: { off: '', double: 'toque duplo', hold: 'segurar' }[sideMode],

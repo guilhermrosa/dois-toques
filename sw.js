@@ -11,6 +11,8 @@ const SHELL = [
   'js/config.js',
   'js/sim.js',
   'js/render.js',
+  'js/render3d.js',
+  'js/golem.js',
   'js/input.js',
   'js/audio.js',
   'js/store.js',

@@ -1,7 +1,7 @@
 {
   "name": "Dois Toques",
   "short_name": "Dois Toques",
-  "description": "Um sapo atravessando o lago com só dois toques: esquerda e direita. Não caia na água e não fique para trás.",
+  "description": "Um golem de pedra atravessando o lago da floresta com só dois toques: esquerda e direita.",
   "lang": "pt-BR",
   "start_url": "./",
   "scope": "./",
