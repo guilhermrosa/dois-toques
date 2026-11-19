@@ -1,0 +1,18 @@
+{
+  "name": "Dois Toques",
+  "short_name": "Dois Toques",
+  "description": "Avance pela grade com só dois toques: esquerda e direita. Não caia e não fique para trás.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#1b2240",
+  "theme_color": "#1b2240",
+  "categories": ["games"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,70 @@
+// Service worker: makes the game load and play offline.
+// The version lives in js/version.js; changing it there makes installed copies pick up the new files
+// (the browser checks imported scripts for changes too).
+importScripts('js/version.js');
+const VERSION = 'dt-v' + self.APP_VERSION;
+const SHELL = [
+  './',
+  'index.html',
+  'css/style.css',
+  'js/main.js',
+  'js/config.js',
+  'js/sim.js',
+  'js/render.js',
+  'js/input.js',
+  'js/audio.js',
+  'js/store.js',
+  'js/version.js',
+  'manifest.webmanifest',
+  'fonts/space-grotesk-latin.woff2',
+  'fonts/inter-latin.woff2',
+  'privacidade.html',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'icons/icon-maskable-512.png',
+  'icons/apple-touch-icon.png',
+];
+
+self.addEventListener('install', event => {
+  // cache: 'reload' skips the browser's HTTP cache, so a new version never stores stale files
+  event.waitUntil(
+    caches.open(VERSION)
+      .then(cache => cache.addAll(SHELL.map(u => new Request(u, { cache: 'reload' }))))
+      .then(() => self.skipWaiting()),
+  );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+      .then(() => self.clients.claim()),
+  );
+});
+
+// Same-origin files: network first (revalidated, so updates show on the next open),
+// falling back to the cached copy when offline or when the network takes over 3 s.
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  const sameOrigin = url.origin === self.location.origin;
+  if (!sameOrigin) return; // the app talks to no other site
+
+  event.respondWith(caches.open(VERSION).then(async cache => {
+    const fromCache = () => cache.match(req, { ignoreSearch: true })
+      .then(r => r || (req.mode === 'navigate' ? cache.match('index.html') : null));
+    const network = fetch(req, { cache: 'no-cache' }).then(res => {
+      if (res.ok) cache.put(req, res.clone());
+      return res;
+    });
+    const timeout = new Promise(resolve => setTimeout(resolve, 3000, null));
+    try {
+      const res = await Promise.race([network, timeout]);
+      if (res) return res;
+      return (await fromCache()) || (await network);
+    } catch (e) {
+      return (await fromCache()) || new Response('', { status: 504 });
+    }
+  }));
+});

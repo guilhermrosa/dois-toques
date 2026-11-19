@@ -1,0 +1,72 @@
+/* Fonts are served with the app (latin subset, SIL Open Font License, see fonts/OFL-*.txt). */
+@font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 500 700; font-display: swap; src: url('../fonts/space-grotesk-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400 600; font-display: swap; src: url('../fonts/inter-latin.woff2') format('woff2'); }
+/* Layout: one full-screen canvas, HUD on the safe-area edges, cards centred over the board.
+   Placeholder look: pale stone tiles over a night-blue abyss. */
+:root {
+  --bg: #1b2240; --side: #0d1122; --panel: rgba(246, 240, 226, .96); --line: #d9cdb3;
+  --ink: #1b1d2a; --muted: #5f6272; --accent: #e5533f; --accent-ink: #fff;
+  --display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--side); color: var(--ink); font: 14px/1.4 var(--body);
+  overflow: hidden; touch-action: none; overscroll-behavior: none;
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+}
+/* Phone-like portrait frame: on wide screens it stays centred at 9:16 with bars on the sides. */
+#stage {
+  position: fixed; top: 0; bottom: 0; left: 0; right: 0; margin-inline: auto;
+  width: min(100vw, calc(100dvh * 9 / 16)); background: var(--bg); overflow: hidden;
+}
+@media (max-aspect-ratio: 3/4) { #stage { width: 100vw; } }
+canvas { display: block; width: 100%; height: 100%; outline: none; touch-action: none; }
+
+.hud {
+  position: absolute; left: 0; right: 0; top: 0; pointer-events: none;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 0;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: start;
+}
+.hud > * { pointer-events: auto; }
+.hud .chip { justify-self: end; }
+.score { text-align: center; color: #fff; display: grid; text-shadow: 0 2px 8px rgba(0,0,0,.4); }
+.score b { font: 700 40px/1 var(--display); }
+.score small { opacity: .7; font-size: 12px; }
+.chip-btn, .chip {
+  justify-self: start; border: 0; border-radius: 999px; padding: 8px 14px;
+  background: rgba(255,255,255,.14); color: #fff; font: 600 14px var(--body);
+}
+.chip-btn { cursor: pointer; min-width: 44px; min-height: 40px; }
+
+.overlay {
+  position: absolute; inset: 0; display: grid; place-items: center; padding: 16px;
+  background: rgba(9, 12, 24, .45);
+}
+.card {
+  width: min(340px, 100%); background: var(--panel); border-radius: 20px; padding: 24px 20px;
+  display: grid; gap: 12px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.35);
+}
+h1, h2 { font-family: var(--display); margin: 0; }
+h1 { font-size: 34px; letter-spacing: -.01em; }
+h2 { font-size: 24px; }
+.eyebrow { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.lead { margin: 0; color: var(--muted); }
+.hint { margin: 0 0 6px; font-size: 12px; color: var(--muted); }
+.big { margin: 0; font: 700 64px/1 var(--display); }
+.btn {
+  display: block; border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 12px;
+  padding: 12px 16px; font: 600 16px var(--body); cursor: pointer; text-decoration: none;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-size: 18px; padding: 14px; }
+.btn.small { font-size: 14px; padding: 10px 12px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.seg-btn {
+  border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 10px 4px;
+  font: 600 13px var(--body); color: var(--ink); cursor: pointer;
+}
+.seg-btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
